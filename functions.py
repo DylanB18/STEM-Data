@@ -2,6 +2,8 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import bcrypt
+from math import nan
 
 # Config
 stem_source = 'prod_data.csv'
@@ -34,7 +36,6 @@ def calcTitleOneRatio(g_data):
 	mean = TitleOneSchools['sRatio'].mean()
 	return mean
 
-
 def TitleOne(g_data):
 	return "The " + str(countTitleOne(g_data)) + " Title I schools have a mean sexRatio of " + str(round(calcTitleOneRatio(g_data), 2))
 
@@ -48,12 +49,103 @@ def calcMagnetRatio(g_data):
 	mean = TitleOneSchools['sRatio'].mean()
 	return mean
 
-
 def Magnet(g_data):
 	return "The " + str(countMagnet(g_data)) + " magnet schools have a mean sexRatio of " + str(round(calcMagnetRatio(g_data), 2))
 
 def AllSchools(g_data):
 	return "All schools have a mean sexRatio of " + str(round(g_data['sRatio'].mean(), 2))
+
+def calcRetentionDisp(school, data):
+	#Grab all students from school
+	students = data.loc[data['School'] == school]
+
+	#Seperate by gender
+	m_students = students.loc[students['Sex'] == 'M']
+	f_students = students.loc[students['Sex'] == 'F']
+
+	#Catch potential divide by zero
+	try:
+		m_avg_courses = len(m_students.index) / m_students['Student Number'].nunique()
+		f_avg_courses = len(f_students.index) / f_students['Student Number'].nunique()
+	except ZeroDivisionError:
+	    return "NaN"
+
+	return round(m_avg_courses / f_avg_courses, 2)
+
+#A version of the above function for the entire county
+def calcCRetentionDisp(data):
+	#Seperate by gender
+	m_students = data.loc[data['Sex'] == 'M']
+	f_students = data.loc[data['Sex'] == 'F']
+
+	m_avg_courses = len(m_students.index) / m_students['Student Number'].nunique()
+	f_avg_courses = len(f_students.index) / f_students['Student Number'].nunique()
+
+	return round(m_avg_courses / f_avg_courses, 2)
+
+def calcRace(data, race):
+	#Grab all students of race
+	students = data.loc[data['Race Ethnicity'] == race]
+
+	Rcount = len(students.index)
+	total = len(data.index)
+
+	return str(round(Rcount / total * 100, 2))
+
+def courseCount(row, data, years):
+	name = row['School Name']
+
+	school_students = data.loc[data['School'] == name]
+
+	school_students = school_students.loc[school_students['School Year'] == 2020]
+
+	courseCount = school_students['Course Title'].nunique()
+
+	#If 2020 isn't selected, pick next best year
+	if(courseCount == 0):
+		bestYear = max(years)
+
+		school_students = data.loc[data['School'] == name]
+
+		school_students = school_students.loc[school_students['School Year'] == int(bestYear)]
+
+		courseCount = school_students['Course Title'].nunique()
+
+	return courseCount
+
+def introCourses(data):
+	#Grab students in intro courses
+	introStudents = data.loc[
+	(data['Course Title'] == "ADVANCED IT HON") |
+	(data['Course Title'] == "AP COMP SCI PRIN") |
+	(data['Course Title'] == "COMP SCI DISCOVERIES")
+	]
+
+	try:
+		#Split into male and female students
+		maleCount = introStudents['Sex'].value_counts().M
+		femaleCount = introStudents['Sex'].value_counts().F
+
+		return str(round(maleCount / femaleCount, 2))
+	except:
+		pass
+		return "Error: NaN"
+
+def hashStudentNum(row):
+	#CONVERT TO HEX AND RUN LATER
+	return bcrypt.hashpw(row['Student Number'], bcrypt.gensalt(10))
+
+def yearFilter(data, years, yearList):
+	#Make empty data frame
+	filtered = pd.DataFrame(columns=data.columns)
+
+	#If for each year, if it was selected, add to data for analysis
+	for year in yearList:
+		if year in years:
+			yearData = data.loc[(data['School Year'] == int(year))]
+			filtered = filtered.append(yearData, ignore_index=True)
+
+	return filtered
 
 #Loading Functions
 @st.cache
@@ -67,13 +159,14 @@ def loadDOEData():
 	return data
 
 @st.cache
-def loadGraphData(main, DOE):
+def loadGraphData(main, DOE, years):
 	#Start with DOE data
 	g_data = DOE.copy()
 
 	#Calculate percents
 	g_data['% Free Lunch'] = g_data.apply(lambda row: calcFreeLunch(row), axis=1)
 	g_data['% Black'] = g_data.apply(lambda row: calcPercentBlack(row), axis=1)
+	g_data['Courses Offered'] = g_data.apply(lambda row: courseCount(row, main, years), axis=1)
 
 	#Calculate Sex Ratio
 	g_data['sRatio'] = g_data.apply(lambda row: calcSexRatio(row, main), axis=1)
@@ -81,7 +174,6 @@ def loadGraphData(main, DOE):
 	sexTotal = main.groupby(["School"])["Sex"].count().reset_index()
 
 	#Discard unneeded data for organization purposes
-	g_data.drop('Total Students', axis=1, inplace=True)
 	g_data.drop('Free Lunch Eligible', axis=1, inplace=True)
 	g_data.drop('Hispanic Students', axis=1, inplace=True)
 	g_data.drop('Black Students', axis=1, inplace=True)
