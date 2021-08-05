@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import altair as alt
 import openpyxl
-from functions import calcFreeLunch, loadSTEMData, loadDOEData, loadGraphData, TitleOne, Magnet, AllSchools, calcRetentionDisp, calcCRetentionDisp, calcRace, introCourses, hashStudentNum, yearFilter
+from functions import calcFreeLunch, loadSTEMData, loadDOEData, loadGraphData, TitleOne, Magnet, AllSchools, calcRetentionDisp, calcCRetentionDisp, calcRace, introCourses, hashStudentNum, yearFilter, introCourseRace, nonIntroCourses
 
 #App Config
 st.set_page_config(page_title="Broward STEM Data Analysis",
@@ -133,7 +133,7 @@ else:
 	st.subheader("School Type Analysis")
 	st.text(TitleOne(graph_data))
 	st.text(Magnet(graph_data))
-	st.text(AllSchools(graph_data))
+	st.text(AllSchools(data))
 
 	st.subheader("Countywide Stats")
 
@@ -142,7 +142,10 @@ else:
 
 	st.text("Countywide, the average male student took " + str(calcCRetentionDisp(data)) + " times more STEM courses than the average female student.")
 
+	st.text("")
 	st.text("In CS Discoveries and AP Computer Science Principles, two popular introductory courses for students, the sRatio is just " + introCourses(data))
+	st.text(introCourseRace(data))
+	st.text("Non-intro courses had an average sRatio of " + nonIntroCourses(data))
 
 	st.subheader("Export Data")
 
