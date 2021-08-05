@@ -37,7 +37,7 @@ def calcTitleOneRatio(g_data):
 	return mean
 
 def TitleOne(g_data):
-	return "The " + str(countTitleOne(g_data)) + " Title I schools have a mean sexRatio of " + str(round(calcTitleOneRatio(g_data), 2))
+	return "The " + str(countTitleOne(g_data)) + " Title I schools have an average sexRatio of " + str(round(calcTitleOneRatio(g_data), 2))
 
 #Return Number of Title I Schools
 def countMagnet(g_data):
@@ -50,10 +50,15 @@ def calcMagnetRatio(g_data):
 	return mean
 
 def Magnet(g_data):
-	return "The " + str(countMagnet(g_data)) + " magnet schools have a mean sexRatio of " + str(round(calcMagnetRatio(g_data), 2))
+	return "The " + str(countMagnet(g_data)) + " magnet schools have an average sexRatio of " + str(round(calcMagnetRatio(g_data), 2))
 
-def AllSchools(g_data):
-	return "All schools have a mean sexRatio of " + str(round(g_data['sRatio'].mean(), 2))
+def AllSchools(data):
+	males = (data['Sex'] == "M").sum()
+	females = (data['Sex'] == "F").sum()
+
+	sRatio = str(round(males/females, 2))
+
+	return "Countywide, the sexRatio is " + sRatio
 
 def calcRetentionDisp(school, data):
 	#Grab all students from school
@@ -130,6 +135,56 @@ def introCourses(data):
 	except:
 		pass
 		return "Error: NaN"
+
+def nonIntroCourses(data):
+	#Grab students in advanced courses
+	advStudents = data.loc[
+	(data['Course Title'] != "ADVANCED IT HON") &
+	(data['Course Title'] != "AP COMP SCI PRIN") &
+	(data['Course Title'] != "COMP SCI DISCOVERIES")
+	]
+
+	try:
+		#Split into male and female students
+		maleCount = advStudents['Sex'].value_counts().M
+		femaleCount = advStudents['Sex'].value_counts().F
+
+		return str(round(maleCount / femaleCount, 2))
+	except:
+		pass
+		return "Error: NaN"
+
+
+def introCourseRace(data):
+	#Grab students in intro courses
+	introStudents = data.loc[
+	(data['Course Title'] == "ADVANCED IT HON") |
+	(data['Course Title'] == "AP COMP SCI PRIN") |
+	(data['Course Title'] == "COMP SCI DISCOVERIES")
+	]
+
+	#Grab all students of race
+	Wstudents = introStudents.loc[introStudents['Race Ethnicity'] == "White"]
+	Bstudents = introStudents.loc[introStudents['Race Ethnicity'] == "Black"]
+	Astudents = introStudents.loc[introStudents['Race Ethnicity'] == "Asian"]
+
+	#Count them
+	Wcount = len(Wstudents.index)
+	Bcount = len(Bstudents.index)
+	Acount = len(Astudents.index)
+
+	#Get Total
+	total = len(introStudents.index)
+
+	if(total != 0):
+		WPercent = str(round(Wcount / total * 100, 2))
+		BPercent = str(round(Bcount / total * 100, 2))
+		APercent = str(round(Acount / total * 100, 2))
+
+		return "In the same intro courses, " + WPercent + "% of students are White, " + BPercent + "% are Black, and " + APercent + "% were Asian."
+
+	else:
+		return "No students were enrolled in intro courses in the selected years, so a demographic breakdown isn't available."
 
 def hashStudentNum(row):
 	#CONVERT TO HEX AND RUN LATER
