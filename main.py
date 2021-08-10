@@ -12,6 +12,12 @@ st.set_page_config(page_title="Broward STEM Data Analysis",
 # Years of data being analyzed
 yearList = ['2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021']
 
+#Style
+st.markdown("""
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
+""", unsafe_allow_html=True)
+
 # Title
 st.title('Broward STEM Data')
 st.text("All students in BCPS taking STEM Classes 2014-2021")
@@ -30,6 +36,31 @@ else:
 	#Load Graph Data based on what DOE data was filtered
 	graph_data = loadGraphData(data, DOE_data, years)
 
+	#Sidebar
+	title = st.sidebar.markdown("## Menu")
+	browse = st.sidebar.markdown("[Browse Data](#raw-data)")
+	search = st.sidebar.markdown("[School Search](#school-search)")
+	graphs = st.sidebar.markdown("[Graphs](#graphs)")
+	corr = st.sidebar.markdown("[Correlations](#correlations)")
+	schoolTA = st.sidebar.markdown("[School Type Analysis](#school-type-analysis)")
+	export = st.sidebar.markdown("[Export Data](#export-data)")
+
+	#Sidebar width hack
+	st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
+        width: 250px;
+    }
+    [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
+        width: 250px;
+        margin-left: -500px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+	)
+
 	# Show Raw Data
 	st.subheader('Raw Data')
 	if(st.checkbox("Show Data")):
@@ -42,6 +73,7 @@ else:
 	if(st.checkbox("Show Breakdown")):
 		sex_data
 
+	#Search data by school
 	st.subheader("School Search")
 	selected_school = st.selectbox("Select School", DOE_data["School Name"].unique())
 	selected_row = DOE_data[DOE_data['School Name'].str.contains(selected_school)]
@@ -56,10 +88,9 @@ else:
 	st.text("Free Lunch Eligible: " + str(round((selected_row[0][5] / selected_row[0][4])* 100, 2)) + "%")
 
 	#Sex Data Extraction
-
 	sex_data_arr = np.array(sex_data)
 
-	#Ignore lines 48-50;)
+	#Ignore lines 48-50 ;)
 	temp = sex_data_arr[0]
 	sex_data_arr[0] = sex_data_arr[1]
 	sex_data_arr[1] = temp
@@ -74,6 +105,7 @@ else:
 	st.text("The average male student took " + str(calcRetentionDisp(selected_school, data)) + " times the STEM courses")
 	st.text("than the average female student")
 
+	#Graphs of data
 	st.subheader("Graphs")
 	st.text("Free Lunch vs. sRatio")
 	lunchSexGraph = alt.Chart(graph_data).mark_circle().encode(
@@ -126,32 +158,49 @@ else:
 
 	sizeSexRatio + sizeSexRatio.transform_regression('Total Students', 'sRatio', method="linear").mark_line()
 
+	#Output variable correlations
 	st.subheader("Correlations")
 	correlations = graph_data.corr(method="pearson")
 	correlations
 
+	#Crunch math by school type and output
 	st.subheader("School Type Analysis")
+
+	#These two are the average by school type with all schools having equal weight.
+	#This means a big magnet and small magnet are weighted the same
 	st.text(TitleOne(graph_data))
 	st.text(Magnet(graph_data))
+
+	#This is a true average of students
 	st.text(AllSchools(data))
 
 	st.subheader("Countywide Stats")
 
+	#Enrollment by year
+	st.text("Courses taken by year")
+	year_data = data["School Year"].value_counts().sort_index()
+	year_data
+
+	#Comparison of countywide demographics
 	st.text("Countywide, 20.2% percent of students are White,  39.3% are Black, and 3.8% are Asian. 33.7% are ethnically Hispanic.")
 	st.text("In STEM, " + calcRace(data, "White") + "% of students are White, " + calcRace(data, "Black") + "% are Black, and " + calcRace(data, "Asian") + "% are Asian. " + calcRace(data, "Hispanic") + "% are ethnically Hispanic.")
 
 	st.text("Countywide, the average male student took " + str(calcCRetentionDisp(data)) + " times more STEM courses than the average female student.")
 
+	#Analysis of intro courses
 	st.text("")
 	st.text("In CS Discoveries and AP Computer Science Principles, two popular introductory courses for students, the sRatio is just " + introCourses(data))
 	st.text(introCourseRace(data))
 	st.text("Non-intro courses had an average sRatio of " + nonIntroCourses(data))
 
+
+	#Data export
 	st.subheader("Export Data")
 
 	SD_CSV = st.button("Student Data (CSV)")
 	SD_EX = st.button("Student Data (Excel)")
 
+	#----TODO----
 	ASD_CSV = st.button("Anonymized Student Data (CSV)")
 	ASD_EX = st.button("Anonymized Student Data (Excel)")
 
