@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import altair as alt
 import openpyxl
-from functions import calcFreeLunch, loadSTEMData, loadDOEData, loadGraphData, TitleOne, Magnet, AllSchools, calcRetentionDisp, calcCRetentionDisp, calcRace, introCourses, hashStudentNum, yearFilter, introCourseRace, nonIntroCourses
+from functions import calcFreeLunch, loadSTEMData, loadDOEData, loadGraphData, TitleOne, Magnet, AllSchools, calcRetentionDisp, calcCRetentionDisp, calcRace, introCourses, yearFilter, introCourseRace, nonIntroCourses, hash
 
 #App Config
 st.set_page_config(page_title="Broward STEM Data Analysis",
@@ -11,12 +11,6 @@ st.set_page_config(page_title="Broward STEM Data Analysis",
 
 # Years of data being analyzed
 yearList = ['2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021']
-
-#Style
-st.markdown("""
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
-""", unsafe_allow_html=True)
 
 # Title
 st.title('Broward STEM Data')
@@ -193,14 +187,12 @@ else:
 	st.text(introCourseRace(data))
 	st.text("Non-intro courses had an average sRatio of " + nonIntroCourses(data))
 
-
 	#Data export
 	st.subheader("Export Data")
 
 	SD_CSV = st.button("Student Data (CSV)")
 	SD_EX = st.button("Student Data (Excel)")
 
-	#----TODO----
 	ASD_CSV = st.button("Anonymized Student Data (CSV)")
 	ASD_EX = st.button("Anonymized Student Data (Excel)")
 
@@ -213,11 +205,16 @@ else:
 		data.to_excel("Exports/Student_Data.xlsx")
 	elif(ASD_CSV):
 		a_data = data
-		a_data['Student Number'] = a_data.apply(lambda row: hashStudentNum(row), axis=1)
-		a_data.to_csv("Exports/Anon_Student_Data.xlsx")
+		hash(a_data,a_data,'Student Number','School Year')
+		a_data['Student Number'] = a_data['hash_Student NumberSchool Year']
+		a_data.drop('hash_Student NumberSchool Year', 1, inplace=True)
+		a_data.to_csv("Exports/Anon_Student_Data.csv")
 	elif(ASD_EX):
-		#Copy Over
-		graph_data.to_csv("Exports/Graph_Data.csv")
+		a_data = data
+		hash(a_data,a_data,'Student Number','School Year')
+		a_data['Student Number'] = a_data['hash_Student NumberSchool Year']
+		a_data.drop('hash_Student NumberSchool Year', 1, inplace=True)
+		a_data.to_excel("Exports/Anon_Student_Data.xlsx")
 	elif(GD_CSV):
 		graph_data.to_csv("Exports/Graph_Data.csv")
 	elif(GD_EX):
