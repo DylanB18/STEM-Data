@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import bcrypt
+import hashlib
 from math import nan
 
 # Config
@@ -186,10 +186,6 @@ def introCourseRace(data):
 	else:
 		return "No students were enrolled in intro courses in the selected years, so a demographic breakdown isn't available."
 
-def hashStudentNum(row):
-	#CONVERT TO HEX AND RUN LATER
-	return bcrypt.hashpw(row['Student Number'], bcrypt.gensalt(10))
-
 def yearFilter(data, years, yearList):
 	#Make empty data frame
 	filtered = pd.DataFrame(columns=data.columns)
@@ -201,6 +197,11 @@ def yearFilter(data, years, yearList):
 			filtered = filtered.append(yearData, ignore_index=True)
 
 	return filtered
+
+#Code courtesy of Heang Arngmaneekul
+def hash(sourcedf,destinationdf,*column):
+    columnName = ''
+    destinationdf['hash_'+columnName.join(column)] = pd.DataFrame(sourcedf[list(column)].values.sum(axis=1))[0].astype(str).str.encode('utf-8').apply(lambda x: (hashlib.sha224(x).hexdigest().upper()))
 
 #Loading Functions
 @st.cache
