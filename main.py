@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import altair as alt
 import openpyxl
-from functions import calcFreeLunch, loadSTEMData, loadDOEData, loadGraphData, TitleOne, Magnet, AllSchools, calcRetentionDisp, calcCRetentionDisp, calcRace, introCourses, yearFilter, introCourseRace, nonIntroCourses, hash
+from functions import calcFreeLunch, loadSTEMData, loadDOEData, loadGraphData, TitleOne, Magnet, AllSchools, calcRetentionDisp, calcCRetentionDisp, calcRace, introCourses, yearFilter, introCourseRace, nonIntroCourses, hash, calcBlackWomen, martin
 
 #App Config
 st.set_page_config(page_title="Broward STEM Data Analysis",
@@ -178,6 +178,7 @@ else:
 	#Comparison of countywide demographics
 	st.text("Countywide, 20.2% percent of students are White,  39.3% are Black, and 3.8% are Asian. 33.7% are ethnically Hispanic.")
 	st.text("In STEM, " + calcRace(data, "White") + "% of students are White, " + calcRace(data, "Black") + "% are Black, and " + calcRace(data, "Asian") + "% are Asian. " + calcRace(data, "Hispanic") + "% are ethnically Hispanic.")
+	st.text("Black women make up " + calcBlackWomen(data) + "% of STEM Classes")
 
 	st.text("Countywide, the average male student took " + str(calcCRetentionDisp(data)) + " times more STEM courses than the average female student.")
 
@@ -186,6 +187,8 @@ else:
 	st.text("In CS Discoveries and AP Computer Science Principles, two popular introductory courses for students, the sRatio is just " + introCourses(data))
 	st.text(introCourseRace(data))
 	st.text("Non-intro courses had an average sRatio of " + nonIntroCourses(data))
+
+	#st.text("Mr. Martin's CS Discoveries class is " + martin(data) + "% male.")
 
 	#Data export
 	st.subheader("Export Data")
