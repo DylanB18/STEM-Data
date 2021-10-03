@@ -97,6 +97,17 @@ def calcRace(data, race):
 
 	return str(round(Rcount / total * 100, 2))
 
+def calcBlackWomen(data):
+	#Grab all students of race
+	black = data.loc[data['Race Ethnicity'] == "Black"]
+	bWomen = black.loc[black['Sex'] == "F"]
+
+	BWcount = len(bWomen.index)
+	total = len(data.index)
+
+	return str(round(BWcount / total * 100, 2))
+
+
 def courseCount(row, data, years):
 	name = row['School Name']
 
@@ -150,6 +161,26 @@ def nonIntroCourses(data):
 		femaleCount = advStudents['Sex'].value_counts().F
 
 		return str(round(maleCount / femaleCount, 2))
+	except:
+		pass
+		return "Error: NaN"
+
+def martin(data):
+	#Grab students in CCHS courses
+
+	introStudents = data.loc[
+	(data['Course Title'] == "AP COMP SCI PRIN")
+	]
+
+	cciStudents = introStudents.loc[
+	(introStudents['School'] == "COOPER CITY HIGH")
+	]
+	try:
+		#Split into male and female students
+		maleCount = cciStudents['Sex'].value_counts().M
+		femaleCount = cciStudents['Sex'].value_counts().F
+
+		return str(round(((maleCount / femaleCount) / ((maleCount / femaleCount) + 1) * 100), 2))
 	except:
 		pass
 		return "Error: NaN"
