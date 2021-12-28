@@ -212,7 +212,7 @@ def introCourseRace(data):
 		BPercent = str(round(Bcount / total * 100, 2))
 		APercent = str(round(Acount / total * 100, 2))
 
-		return "In the same intro courses, " + WPercent + "% of students are White, " + BPercent + "% are Black, and " + APercent + "% were Asian."
+		return "In the same intro courses, " + WPercent + "% of students are White, " + BPercent + "% are Black, and " + APercent + "% are Asian."
 
 	else:
 		return "No students were enrolled in intro courses in the selected years, so a demographic breakdown isn't available."
@@ -228,6 +228,31 @@ def yearFilter(data, years, yearList):
 			filtered = filtered.append(yearData, ignore_index=True)
 
 	return filtered
+
+def t1Filter(data, DOE, titleOneMode):
+	if(titleOneMode == 'Title I Schools'):
+		#Grab T1 Schools
+		t1Schools = []
+
+		t1Only = DOE.loc[(DOE['School-wide Title I'] == "Yes")]
+
+		for index, row in t1Only.iterrows():
+			t1Schools.append(row["School Name"])
+
+		return data[data['School'].isin(t1Schools)]
+
+	elif(titleOneMode == 'Non Title I'):
+		#Grab T1 Schools
+		nTSchools = []
+
+		nTOnly = DOE.loc[(DOE['School-wide Title I'] == "No")]
+
+		for index, row in nTOnly.iterrows():
+			nTSchools.append(row["School Name"])
+
+		return data[data['School'].isin(nTSchools)]
+	else:
+		return data
 
 #Code courtesy of Heang Arngmaneekul
 def hash(sourcedf,destinationdf,*column):
