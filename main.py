@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import altair as alt
 import openpyxl
-from functions import calcFreeLunch, loadSTEMData, loadDOEData, loadGraphData, TitleOne, Magnet, AllSchools, calcRetentionDisp, calcCRetentionDisp, calcRace, introCourses, yearFilter, introCourseRace, nonIntroCourses, hash, calcBlackWomen, martin
+from functions import calcFreeLunch, loadSTEMData, loadDOEData, loadGraphData, TitleOne, Magnet, AllSchools, calcRetentionDisp, calcCRetentionDisp, calcRace, introCourses, yearFilter, introCourseRace, nonIntroCourses, hash, calcBlackWomen, martin, t1Filter
 
 #App Config
 st.set_page_config(page_title="Broward STEM Data Analysis",
@@ -25,7 +25,21 @@ years = st.multiselect("Years to Analyze", yearList, yearList)
 if(len(years) == 0):
 	st.text("Please select years to analyze.")
 else:
+	#Filter by years selected
 	data = yearFilter(data, years, yearList)
+
+	#Offer to sort only Title I schools
+	titleOneMode = st.radio("Analyze:", ('All Schools', 'Title I Schools', 'Non Title I'))
+
+	#Sort by Title I if requested
+	data = t1Filter(data, DOE_data, titleOneMode)
+
+	#Remove Title I or non Title I schools from DOE Data
+	if (titleOneMode == 'Title I Schools'):
+		DOE_data = DOE_data.loc[(DOE_data['School-wide Title I'] == "Yes")]
+
+	if (titleOneMode == 'Non Title I'):
+		DOE_data = DOE_data.loc[(DOE_data['School-wide Title I'] == "No")]
 
 	#Load Graph Data based on what DOE data was filtered
 	graph_data = loadGraphData(data, DOE_data, years)
